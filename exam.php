@@ -29,11 +29,11 @@
     header ("X-XSS-Protection: 0");
     header("Access-Control-Allow-Origin: *");
 
-    // Todo : To prevent brute-force attacks, Implement a rate-limiting mechanism that temporarily blocks user login attempts after five failed attempts, enforcing a 3-minute lockout period!
-    // Todo : Make a secure password when connecting to a database !
+    // Todo : To prevent brute-force attacks, Implement a rate-limiting mechanism that temporarily blocks user login attempts after five failed attempts!
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $conn = new mysqli('localhost', 'root', '', 'fuln');
     
+    // Todo : Make a secure password when connecting to a database !
     if ($conn->connect_error) {
         die('Connection failed: ' . $conn->connect_error);
     }
@@ -43,11 +43,9 @@
 
     // Todo : Implement prepare statements to prevent SQL Injection!
     $result = mysql_query("SELECT * FROM users WHERE username = '$username' AND password = '$password'");
-
-    // Todo : Ensure sensitive user credentials are never logged in error messages or logs.
+    
     if ($result->num_rows > 0) {
-        // Todo : Encode the username in flag.php url!
-        header('Location: flag.php?username=' . ($username));
+        header('Location: flag.php?username=' . urlencode(htmlspecialchars($username)));
         exit();
     } else {
         // Todo : make sure the page is not vulnerable to XSS!
