@@ -34,25 +34,22 @@
     header("Strict-Transport-Security: max-age=31536000; includeSubDomains; preload");
     header("Access-Control-Allow-Origin: 'none'");
 
-    // Brute-force protection - Lockout after 5 failed attempts
-    if (!isset($_SESSION['login_attempts'])) {
-        $_SESSION['login_attempts'] = 0;
-    }
-
-    if ($_SESSION['login_attempts'] >= 5) {
-        die('Too many failed login attempts. Try again later.');
-    }
-
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $conn = new mysqli('localhost', 'root', 'secure_password', 'fuln');
         if ($conn->connect_error) {
             die('Connection failed: ' . $conn->connect_error);
         }
 
+        $attempts = $_SESSION['login_attempts'];
+        $max_attempts = 6;
+
+        if($attempts >= $max_attempts){
+            die('Too many failed login attempts. Try again later.');
+        }
+
         $username = $_POST['username'];
         $password = $_POST['password'];
 
-        // Use prepared statements to prevent SQL Injection
         $stmt = $conn->prepare("SELECT password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
@@ -61,7 +58,7 @@
         $stmt->fetch();
 
         if ($stmt->num_rows > 0 && password_verify($password, $hashed_password)) {
-            $_SESSION['login_attempts'] = 0; // Reset on success
+            $_SESSION['login_attempts'] = 0; 
             header('Location: flag.php?username=' . urlencode(htmlspecialchars($username)));
             exit();
         } else {
